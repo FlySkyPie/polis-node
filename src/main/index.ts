@@ -1,7 +1,9 @@
 import { app, shell, BrowserWindow } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
+
 import icon from '../../resources/icon.png?asset'
+import { SpectatorServer } from './spectator-server'
 
 function createWindow(): void {
   // Create the browser window.
@@ -33,6 +35,8 @@ function createWindow(): void {
   } else {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
+
+  const server = new SpectatorServer(mainWindow)
 }
 
 // This method will be called when Electron has finished

@@ -1,3 +1,5 @@
+import { SampleViewSource } from './sample-view-source'
+
 export function init(): void {
   window.addEventListener('DOMContentLoaded', () => {
     doAThing()
@@ -5,18 +7,18 @@ export function init(): void {
 }
 
 function doAThing(): void {
-  const versions = window.electron.process.versions
-  replaceText('.electron-version', `Electron v${versions.electron}`)
-  replaceText('.chrome-version', `Chromium v${versions.chrome}`)
-  replaceText('.node-version', `Node v${versions.node}`)
-  replaceText('.v8-version', `V8 v${versions.v8}`)
-}
-
-function replaceText(selector: string, text: string): void {
-  const element = document.querySelector<HTMLElement>(selector)
-  if (element) {
-    element.innerText = text
+  const canvas = document.querySelector<HTMLCanvasElement>('#video')
+  if (canvas) {
+    new SampleViewSource(canvas)
   }
 }
 
 init()
+
+window.requestEventEmitter.on('disconnect', (clientId) => {
+  console.log('[Browser]', 'disconnect', clientId)
+})
+
+window.requestEventEmitter.on('connection', (clientId) => {
+  console.log('[Browser', 'connection', clientId)
+})

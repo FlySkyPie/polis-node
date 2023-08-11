@@ -1,8 +1,10 @@
-import { contextBridge } from 'electron'
+import { contextBridge, ipcRenderer } from 'electron'
 import { electronAPI } from '@electron-toolkit/preload'
 
-// Custom APIs for renderer
-const api = {}
+import { RequestEventMap } from '../interfaces/request-event-map'
+import { TypedEventEmitter } from '../utilities/typed-event-emitter'
+
+const requestEventEmitter = new TypedEventEmitter<RequestEventMap>()
 
 // Use `contextBridge` APIs to expose Electron APIs to
 // renderer only if context isolation is enabled, otherwise
@@ -10,7 +12,7 @@ const api = {}
 if (process.contextIsolated) {
   try {
     contextBridge.exposeInMainWorld('electron', electronAPI)
-    contextBridge.exposeInMainWorld('api', api)
+    contextBridge.exposeInMainWorld('requestEventEmitter', requestEventEmitter)
   } catch (error) {
     console.error(error)
   }
@@ -18,5 +20,13 @@ if (process.contextIsolated) {
   // @ts-ignore (define in dts)
   window.electron = electronAPI
   // @ts-ignore (define in dts)
-  window.api = api
+  window.requestEventEmitter = requestEventEmitter
 }
+
+ipcRenderer.on('connection', (_, clientId: string) => {
+  requestEventEmitter.emit('connection', clientId)
+})
+
+ipcRenderer.on('disconnect', (_, clientId: string) => {
+  requestEventEmitter.emit('disconnect', clientId)
+})
