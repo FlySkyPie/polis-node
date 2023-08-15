@@ -21,6 +21,7 @@ function createWindow(): void {
 
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+    mainWindow.webContents.openDevTools()
   })
 
   mainWindow.webContents.setWindowOpenHandler((details) => {
@@ -36,7 +37,7 @@ function createWindow(): void {
     mainWindow.loadFile(join(__dirname, '../renderer/index.html'))
   }
 
-  const server = new SpectatorServer(mainWindow)
+  const server = new SpectatorServer(mainWindow.webContents)
 }
 
 // This method will be called when Electron has finished
