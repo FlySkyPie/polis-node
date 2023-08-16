@@ -6,6 +6,8 @@ import { Server } from 'socket.io'
 import { nanoid } from 'nanoid'
 import { ipcMain } from 'electron'
 
+const PRINT_LOG = false
+
 export class SpectatorServer {
   private secssions = new Map<string, Socket>()
   constructor(webContents: Electron.WebContents) {
@@ -24,24 +26,24 @@ export class SpectatorServer {
     io.on('connection', (socket) => {
       const clientId = nanoid()
       this.secssions.set(clientId, socket)
-      console.log('a user connected', clientId)
+      PRINT_LOG && console.log('a user connected', clientId)
 
       webContents.send('connection', clientId)
 
       socket.on('disconnect', () => {
         this.secssions.delete(clientId)
-        console.log('user disconnected', clientId)
+        PRINT_LOG && console.log('user disconnected', clientId)
 
         webContents.send('disconnect', clientId)
       })
 
       socket.on('answer', (description: RTCSessionDescriptionInit) => {
-        console.log(chalk.red('[socket->webContents]'), 'answer', description)
+        PRINT_LOG && console.log(chalk.red('[socket->webContents]'), 'answer', description)
         webContents.send('answer', clientId, description)
       })
 
       socket.on('icecandidate', (candidate: RTCIceCandidate) => {
-        console.log(chalk.red('[socket->webContents]'), 'icecandidate', candidate)
+        PRINT_LOG && console.log(chalk.red('[socket->webContents]'), 'icecandidate', candidate)
         webContents.send('icecandidate', clientId, candidate)
       })
     })
@@ -56,10 +58,8 @@ export class SpectatorServer {
         throw new Error()
       }
 
-      console.log('OHO')
-      console.log(chalk.red('[ipcMain->Socket]'), 'icecandidate', candidate)
+      PRINT_LOG && console.log(chalk.red('[ipcMain->Socket]'), 'icecandidate', candidate)
       socket.emit('icecandidate', candidate)
-      // socket.emit('icecandidate', new RTCIceCandidate(candidate).toJSON())
     })
 
     ipcMain.on('offer', (_, clientId: string, description: RTCSessionDescriptionInit) => {
@@ -67,10 +67,9 @@ export class SpectatorServer {
       if (!socket) {
         throw new Error()
       }
-      console.log('OHO')
-      console.log(chalk.red('[ipcMain->Socket]'), 'offer', description)
+
+      PRINT_LOG && console.log(chalk.red('[ipcMain->Socket]'), 'offer', description)
       socket.emit('offer', description)
-      // socket.emit('offer', new RTCSessionDescription(description).toJSON())
     })
   }
 }

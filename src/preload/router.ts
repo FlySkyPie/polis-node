@@ -4,6 +4,8 @@ import type { ResponseEventMap } from '../interfaces/response-event-map'
 import type { RequestEventMap } from '../interfaces/request-event-map'
 import { TypedEventEmitter } from '../utilities/typed-event-emitter'
 
+const PRINT_LOG = false
+
 export class Router {
   public requestEventEmitter = new TypedEventEmitter<RequestEventMap>()
 
@@ -19,19 +21,22 @@ export class Router {
     })
 
     ipcRenderer.on('answer', (_, clientId: string, description: RTCSessionDescriptionInit) => {
-      console.log('[ipcRenderer->requestEventEmitter]', 'answer', clientId, description)
+      PRINT_LOG &&
+        console.log('[ipcRenderer->requestEventEmitter]', 'answer', clientId, description)
       this.requestEventEmitter.emit('answer', clientId, description)
     })
 
     ipcRenderer.on('icecandidate', (_, clientId: string, candidate: RTCIceCandidate) => {
-      console.log('[ipcRenderer->requestEventEmitter]', 'icecandidate', clientId, candidate)
+      PRINT_LOG &&
+        console.log('[ipcRenderer->requestEventEmitter]', 'icecandidate', clientId, candidate)
       this.requestEventEmitter.emit('icecandidate', clientId, candidate)
     })
 
     this.responseEventEmitter.on(
       'icecandidate',
       (clientId: string, candidate: RTCIceCandidateInit) => {
-        console.log('[responseEventEmitter->ipcRenderer]', 'icecandidate', clientId, candidate)
+        PRINT_LOG &&
+          console.log('[responseEventEmitter->ipcRenderer]', 'icecandidate', clientId, candidate)
         ipcRenderer.send('icecandidate', clientId, candidate)
       }
     )
@@ -39,7 +44,8 @@ export class Router {
     this.responseEventEmitter.on(
       'offer',
       (clientId: string, description: RTCSessionDescriptionInit) => {
-        console.log('[responseEventEmitter->ipcRenderer]', 'offer', clientId, description)
+        PRINT_LOG &&
+          console.log('[responseEventEmitter->ipcRenderer]', 'offer', clientId, description)
         ipcRenderer.send('offer', clientId, description)
       }
     )
