@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 
 import { useSocket } from "../../context/socket-context";
+import { ReceiverSession } from "../../session/receiver-session";
 
 import styles from "./styles.module.scss";
-import { ReceiverSession } from "../../session/receiver-session";
 
 export const MainViewport: React.FC = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
