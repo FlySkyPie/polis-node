@@ -1,0 +1,4 @@
+packages:
+  - polis-node-electron/
+  - spectator-client/
+  - packages/*
