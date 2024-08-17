@@ -1,6 +1,9 @@
-// import fs from 'fs-extra';  // ^11.2.0
-import * as THREE from 'three'; // ^0.167.1
-import { init, addThreeHelpers } from '3d-core-raub'; // ^4.3.0
+import * as THREE from 'three';
+import { init, addThreeHelpers } from '3d-core-raub';
+import { nonstandard, MediaStream } from 'wrtc';
+
+import { StreamBroadcastor } from './stream-broadcastor';
+import { SpectatorServer } from './spectator-server';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -28,6 +31,11 @@ scene.add(mesh);
 
 let i = 0;
 
+const source = new nonstandard.RTCVideoSource();
+const track = source.createTrack();
+const stream = new MediaStream()
+stream.addTrack(track)
+
 const animate = () => {
   requestAnimationFrame(animate);
   const time = Date.now();
@@ -36,7 +44,7 @@ const animate = () => {
 
   renderer.render(scene, camera);
 
-  const image: any = new Uint8Array(doc.w * doc.h * 4);
+  const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
 
   gl.readPixels(
     0, 0,
@@ -45,6 +53,13 @@ const animate = () => {
     gl.UNSIGNED_BYTE,
     image);
 
+  const i420Data = new Uint8ClampedArray(doc.w * doc.h * 1.5);
+  const i420Frame = { width: doc.w, height: doc.h, data: i420Data };
+  const rgbaFrame = { width: doc.w, height: doc.h, data: image };
+
+  nonstandard.rgbaToI420(rgbaFrame, i420Frame);
+
+  source.onFrame(i420Frame);
   // fs.ensureDirSync("./data");
   // fs.writeFileSync(`./data/${String(i).padStart(5, "0")}.rgba`, image, {});
   i++;
@@ -52,4 +67,7 @@ const animate = () => {
 
 animate();
 
-console.log("Test")
+const broadcastor = new StreamBroadcastor(stream);
+const server = new SpectatorServer(broadcastor);
+
+broadcastor.setAnswerable(server);

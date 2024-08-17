@@ -6,5 +6,11 @@
   "scripts": {},
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "dependencies": {
+    "wrtc": "^0.4.7"
+  },
+  "devDependencies": {
+    "@types/wrtc": "npm:@shynome/types__wrtc@^0.0.4"
+  }
 }

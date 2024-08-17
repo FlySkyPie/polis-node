@@ -8,7 +8,15 @@ importers:
 
   .: {}
 
-  packages/webrtc-interface: {}
+  packages/webrtc-interface:
+    dependencies:
+      wrtc:
+        specifier: ^0.4.7
+        version: 0.4.7
+    devDependencies:
+      '@types/wrtc':
+        specifier: npm:@shynome/types__wrtc@^0.0.4
+        version: '@shynome/types__wrtc@0.0.4'
 
   polis-node-electron:
     dependencies:
@@ -97,13 +105,40 @@ importers:
       '@packages/webrtc-interface':
         specifier: workspace:*
         version: link:../packages/webrtc-interface
+      chalk:
+        specifier: ^4.0.0
+        version: 4.1.2
+      events:
+        specifier: ^3.3.0
+        version: 3.3.0
+      express:
+        specifier: ^4.18.2
+        version: 4.19.2
+      nanoid:
+        specifier: ^3.3.6
+        version: 3.3.7
+      socket.io:
+        specifier: ^4.7.2
+        version: 4.7.5
       three:
         specifier: ^0.167.1
         version: 0.167.1
+      wrtc:
+        specifier: ^0.4.7
+        version: 0.4.7
     devDependencies:
+      '@types/express':
+        specifier: ^4.17.17
+        version: 4.17.21
+      '@types/node':
+        specifier: ^18.16.19
+        version: 18.19.44
       '@types/three':
         specifier: ^0.167.1
         version: 0.167.1
+      '@types/wrtc':
+        specifier: npm:@shynome/types__wrtc@^0.0.4
+        version: '@shynome/types__wrtc@0.0.4'
       nodemon:
         specifier: ^3.1.4
         version: 3.1.4
@@ -886,6 +921,9 @@ packages:
     cpu: [x64]
     os: [win32]
 
+  '@shynome/types__wrtc@0.0.4':
+    resolution: {integrity: sha512-BGiG3+QhkhJ6iwRtw32HMZy2vMxsKCDP1PJ12znGfhwF+rN6KClyg8x/cYfRG5HYOc523AKzMbGw+FqcwNvvaw==}
+
   '@sindresorhus/is@4.6.0':
     resolution: {integrity: sha512-t09vSN3MdfsyCHoFcTRCH/iUtG7OJ0CsjzB8cjAmKc/va/kIgeDI/TxsigdncE/4be734m0cvIYwNaV4i2XqAw==}
     engines: {node: '>=10'}
@@ -1624,6 +1662,10 @@ packages:
   doctrine@3.0.0:
     resolution: {integrity: sha512-yS+Q5i3hBf7GBkd4KG8a7eBNNWNGLTaEwwYWUijIYM7zrlYDM0BFXHjjPWlWZ1Rg7UaddZeIDmi9jF3HmqiQ2w==}
     engines: {node: '>=6.0.0'}
+
+  domexception@1.0.1:
+    resolution: {integrity: sha512-raigMkn7CJNNo6Ihro1fzG7wr3fHuYVytzquZKX5n0yizGsTcYgzdIUwj1X9pK0VvjeihV+XiclP+DjwbsSKug==}
+    deprecated: Use your platform's native DOMException instead
 
   dotenv-expand@5.1.0:
     resolution: {integrity: sha512-YXQl1DSa4/PQyRfgrv6aoNjhasp/p4qs9FjJ4q4cQk+8m4r6k4ZSiEyytKG8f8W9gi8WsQtIObNmKd+tMzNTmA==}
@@ -2946,6 +2988,9 @@ packages:
     resolution: {integrity: sha512-nKyUC2ghI0sARrXih02PLsshBzFCSxB6ToWZDDJ4c9A0qRgMuMMogOqKkbY05vwznuPv3z48S+eYXogd124hkw==}
     engines: {node: '>=20.14.0', npm: '>=10.7.0'}
 
+  webidl-conversions@4.0.2:
+    resolution: {integrity: sha512-YQ+BmxuTgd6UXZW3+ICGfyqRyHXVlD5GtQr5+qjiNW7bF0cqrzX500HVXPBOvgXb5YnzDd+h0zqyv61KUD7+Sg==}
+
   which@2.0.2:
     resolution: {integrity: sha512-BLI3Tl1TW3Pvl70l3yq3Y64i+awpwXqsGBYWkkqMtnbXgrMD+yj7rhW0kuEDxzJaYXGjEW5ogapKNMEKNMjibA==}
     engines: {node: '>= 8'}
@@ -2961,6 +3006,12 @@ packages:
 
   wrappy@1.0.2:
     resolution: {integrity: sha512-l4Sp/DRseor9wL6EvV2+TuQn63dMkPjZ/sp9XkghTEbV9KlPS1xUsZ3u7/IQO4wxtcFB4bgpQPRcR3QCvezPcQ==}
+
+  wrtc@0.4.7:
+    resolution: {integrity: sha512-P6Hn7VT4lfSH49HxLHcHhDq+aFf/jd9dPY7lDHeFhZ22N3858EKuwm2jmnlPzpsRGEPaoF6XwkcxY5SYnt4f/g==}
+    engines: {node: ^8.11.2 || >=10.0.0}
+    bundledDependencies:
+      - node-pre-gyp
 
   ws@8.17.1:
     resolution: {integrity: sha512-6XQFvXTkbfUOZOKKILFG1PDK2NDQs4azKQl26T0YS5CxqWLgXajbPZ+h4gZekJyRqFU8pvnbAbbs/3TgRPy+GQ==}
@@ -3653,6 +3704,8 @@ snapshots:
 
   '@rollup/rollup-win32-x64-msvc@4.20.0':
     optional: true
+
+  '@shynome/types__wrtc@0.0.4': {}
 
   '@sindresorhus/is@4.6.0': {}
 
@@ -4500,6 +4553,11 @@ snapshots:
   doctrine@3.0.0:
     dependencies:
       esutils: 2.0.3
+
+  domexception@1.0.1:
+    dependencies:
+      webidl-conversions: 4.0.2
+    optional: true
 
   dotenv-expand@5.1.0: {}
 
@@ -5953,6 +6011,9 @@ snapshots:
     transitivePeerDependencies:
       - node-addon-api
 
+  webidl-conversions@4.0.2:
+    optional: true
+
   which@2.0.2:
     dependencies:
       isexe: 2.0.0
@@ -5966,6 +6027,10 @@ snapshots:
       strip-ansi: 6.0.1
 
   wrappy@1.0.2: {}
+
+  wrtc@0.4.7:
+    optionalDependencies:
+      domexception: 1.0.1
 
   ws@8.17.1: {}
 
