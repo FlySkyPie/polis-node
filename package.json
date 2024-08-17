@@ -2,7 +2,9 @@
   "name": "polis-node",
   "version": "1.0.0",
   "description": "",
-  "scripts": {},
+  "scripts": {
+    "dev": "pnpm --stream -r dev"
+  },
   "keywords": [],
   "author": "",
   "license": "MIT"
