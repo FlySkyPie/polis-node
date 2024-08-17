@@ -8,6 +8,8 @@ importers:
 
   .: {}
 
+  packages/webrtc-interface: {}
+
   polis-node-electron:
     dependencies:
       '@electron-toolkit/preload':
@@ -16,6 +18,9 @@ importers:
       '@electron-toolkit/utils':
         specifier: ^1.0.2
         version: 1.0.2(electron@24.8.8)
+      '@packages/webrtc-interface':
+        specifier: workspace:*
+        version: link:../packages/webrtc-interface
       chalk:
         specifier: ^4.0.0
         version: 4.1.2
@@ -95,6 +100,9 @@ importers:
       '@mui/joy':
         specifier: 5.0.0-beta.5
         version: 5.0.0-beta.5(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@emotion/styled@11.13.0(@emotion/react@11.13.0(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react@18.3.1))(@types/react@18.3.3)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      '@packages/webrtc-interface':
+        specifier: workspace:*
+        version: link:../packages/webrtc-interface
       events:
         specifier: ^3.3.0
         version: 3.3.0

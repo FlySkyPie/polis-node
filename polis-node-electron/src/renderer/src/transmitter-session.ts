@@ -1,6 +1,9 @@
 import { TypedEventEmitter } from '../../utilities/typed-event-emitter'
-import type { IRTCOfferable, IRTCOfferableEventMap } from '../../interfaces/rtc-offerable'
-import type { ITransmittable } from '../../interfaces/transmittable'
+import type {
+  IRTCOfferable,
+  IRTCOfferableEventMap,
+  ITransmittable
+} from '@packages/webrtc-interface'
 // import { TypedEventEmitter } from "../typed-event-emitter";
 
 const offerOptions = {

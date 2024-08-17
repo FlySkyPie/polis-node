@@ -1,8 +1,8 @@
 import type {
   IRTCAnswerable,
   IRTCAnswerableEventMap,
-} from "../interfaces/rtc-answerable";
-import type { IReceivable, IReceivableEventMap } from "../interfaces/receivable";
+  IReceivable, IReceivableEventMap
+} from "@packages/webrtc-interface";
 import { TypedEventEmitter } from "../utilities/typed-event-emitter";
 
 type IEventMap = IRTCAnswerableEventMap & IReceivableEventMap;
