@@ -56,7 +56,7 @@ export class SpectatorServer implements ISpectatorServer {
       })
     })
 
-    server.listen(0, () => {
+    server.listen(process.env.NODE_ENV === 'development' ? 5959 : 0, () => {
       console.log('listening on *:', server.address())
     })
   }

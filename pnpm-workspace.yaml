@@ -1,5 +1,5 @@
 packages:
-  - polis-node-electron/
+  # - polis-node-electron/
   - spectator-client/
   - polis-node-raub/
   - packages/*
