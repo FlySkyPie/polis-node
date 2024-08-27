@@ -5,6 +5,7 @@ import { nonstandard, MediaStream } from 'wrtc';
 import loadFont, { type IResult } from 'load-bmfont';
 import createText from '@flyskypie/three-bmfont-text';
 import dayjs from 'dayjs';
+import sharp from 'sharp';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
@@ -44,7 +45,7 @@ camera.aspect = doc.innerWidth / doc.innerHeight;
 camera.updateProjectionMatrix();
 
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+scene.background = new THREE.Color(0xeeeeee);
 
 const geometry = new THREE.BoxGeometry();
 const material = new THREE.MeshBasicMaterial({ color: 0xFACE8D });
@@ -112,13 +113,24 @@ const animate = () => {
     gl.UNSIGNED_BYTE,
     image);
 
-  const i420Data = new Uint8ClampedArray(doc.w * doc.h * 1.5);
-  const i420Frame = { width: doc.w, height: doc.h, data: i420Data };
-  const rgbaFrame = { width: doc.w, height: doc.h, data: image };
+  sharp(image, {
+    raw: {
+      width: doc.w,
+      height: doc.h,
+      channels: 4,
+    }
+  }).flip()
+    .toBuffer()
+    .then(buffer => {
+      const i420Data = new Uint8ClampedArray(doc.w * doc.h * 1.5);
+      const i420Frame = { width: doc.w, height: doc.h, data: i420Data };
+      const rgbaFrame = { width: doc.w, height: doc.h, data: buffer };
 
-  nonstandard.rgbaToI420(rgbaFrame, i420Frame);
+      nonstandard.rgbaToI420(rgbaFrame, i420Frame);
 
-  source.onFrame(i420Frame);
+      source.onFrame(i420Frame);
+    })
+
   // fs.ensureDirSync("./data");
   // fs.writeFileSync(`./data/${String(i).padStart(5, "0")}.rgba`, image, {});
   i++;
