@@ -34,6 +34,7 @@ export interface IEventEntity {
 export interface ISpectatorEntity {
   camera: PerspectiveCamera,
   renderTarget: WebGLRenderTarget,
+  buffer: Uint8Array,
 };
 
 export interface IFontAssetEntity {

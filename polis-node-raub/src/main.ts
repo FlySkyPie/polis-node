@@ -27,7 +27,6 @@ addThreeHelpers(THREE, gl);
 const world = new World<IEntity>();
 
 const querySpectator = world.with('camera', 'renderTarget');
-const queryThree = world.with('threeComponent');
 
 const genesisSystem = new GenesisSystem();
 const assetSystem = new AssetSystem();
@@ -59,63 +58,35 @@ const track = source.createTrack();
 const stream = new MediaStream()
 stream.addTrack(track)
 
-const animate = () => {
-  requestAnimationFrame(animate);
+const gameLoop = () => {
+  requestAnimationFrame(gameLoop);
 
   debugClockSystem.tick(world, {});
+  renderSystem.tick(world);
 
-  // renderSystem.renderer.render(scene, camera);
+  const { buffer, renderTarget: { width, height } } = querySpectator.first!;
+  sharp(buffer, {
+    raw: {
+      width: width,
+      height: height,
+      channels: 4,
+    }
+  }).flip()
+    .toBuffer()
+    .then(buffer => {
+      const i420Data = new Uint8ClampedArray(width * height * 1.5);
+      const i420Frame = { width: width, height: height, data: i420Data };
+      const rgbaFrame = { width: width, height: height, data: buffer };
 
-  // const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
-  // gl.readPixels(
-  //   0, 0,
-  //   doc.w, doc.h,
-  //   gl.RGBA,
-  //   gl.UNSIGNED_BYTE,
-  //   image);
+      nonstandard.rgbaToI420(rgbaFrame, i420Frame);
 
+      source.onFrame(i420Frame);
+    });
 
-  (() => {
-    const { threeComponent: { scene } } = queryThree.first!;
-
-    const spectatorEntity = querySpectator.first!;
-    const { renderTarget, camera } = spectatorEntity;
-    const { width, height } = renderTarget;
-    renderSystem.renderer.setRenderTarget(renderTarget);
-    renderSystem.renderer.render(scene, camera);
-
-    const image: any = new Uint8Array(width * height * 4);
-
-    renderSystem.renderer.readRenderTargetPixels(
-      renderTarget,
-      0, 0,
-      width, height,
-      image);
-
-    sharp(image, {
-      raw: {
-        width: width,
-        height: height,
-        channels: 4,
-      }
-    }).flip()
-      .toBuffer()
-      .then(buffer => {
-        const i420Data = new Uint8ClampedArray(width * height * 1.5);
-        const i420Frame = { width: width, height: height, data: i420Data };
-        const rgbaFrame = { width: width, height: height, data: buffer };
-
-        nonstandard.rgbaToI420(rgbaFrame, i420Frame);
-
-        source.onFrame(i420Frame);
-      });
-  })();
-
-  renderSystem.renderer.setRenderTarget(null);
   i++;
 };
 
-animate();
+gameLoop();
 
 const broadcastor = new StreamBroadcastor(stream);
 const server = new SpectatorServer(broadcastor);
