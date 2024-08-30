@@ -1,12 +1,10 @@
 import * as THREE from 'three';
 import { init, addThreeHelpers } from '3d-core-raub';
 import { nonstandard, MediaStream } from 'wrtc';
-import createText from '@flyskypie/three-bmfont-text';
-import dayjs from 'dayjs';
 import sharp from 'sharp';
 import { World } from "miniplex";
 
-import type { IEntity, IDebugClockEntity, } from './entities';
+import type { IEntity, } from './entities';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
@@ -14,6 +12,7 @@ import { RenderSystem } from './systems/render.system';
 import { AssetSystem } from './systems/asset.system';
 import { GenesisSystem } from './systems/genesis.system';
 import { SampleSystem } from './systems/sample.system';
+import { DebugClockSystem } from './systems/debug-clock.system';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -28,15 +27,21 @@ addThreeHelpers(THREE, gl);
 const world = new World<IEntity>();
 
 const querySpectator = world.with('camera', 'renderTarget');
-const queryFont = world.with('name', 'font');
-const queryFontTexture = world.with('name', 'texture');
-const queryDebugClock = world.with('object3D', 'mesh', 'isDebugClock');
 const queryThree = world.with('threeComponent');
 
 const genesisSystem = new GenesisSystem();
 const assetSystem = new AssetSystem();
 const sampleSystem = new SampleSystem();
+const debugClockSystem = new DebugClockSystem();
 const renderSystem = new RenderSystem(doc);
+
+// const systems = [
+//   genesisSystem,
+//   assetSystem,
+//   sampleSystem,
+//   debugClockSystem,
+//   renderSystem,
+// ];
 
 await genesisSystem.init(world);
 await Promise.all([
@@ -44,34 +49,7 @@ await Promise.all([
   sampleSystem,
   renderSystem,
 ].map(item => item.init(world)));
-
-const { threeComponent: { scene } } = queryThree.first!;
-world.add<IDebugClockEntity>((() => {
-  const material = new THREE.MeshBasicMaterial({
-    map: queryFontTexture.first!.texture,
-    transparent: true,
-    color: 'rgb(230, 230, 230)'
-  });
-  const geometry: THREE.BufferGeometry = createText({
-    text: dayjs().format('HH:mm:ss SSS'),
-    font: queryFont.first!.font,
-    width: 1000,
-  });
-  const mesh = new THREE.Mesh(geometry, material);
-
-  // scale it down so it fits in our 3D units
-  const textAnchor = new THREE.Object3D();
-  textAnchor.scale.set(0.05, -0.05, -0.05);
-  textAnchor.position.setX(-1000 * 0.05 * 0.5 * 0.5)
-  textAnchor.add(mesh);
-  scene.add(textAnchor);
-
-  return {
-    isDebugClock: true,
-    mesh: mesh,
-    object3D: textAnchor,
-  };
-})());
+await debugClockSystem.init(world);
 
 let i = 0;
 
@@ -84,16 +62,7 @@ stream.addTrack(track)
 const animate = () => {
   requestAnimationFrame(animate);
 
-  const geom: THREE.BufferGeometry = createText({
-    text: dayjs().format('HH:mm:ss SSS'),
-    font: queryFont.first!.font,
-    width: 1000,
-  });
-
-  const { mesh: text } = queryDebugClock.first!;
-  const old = text.geometry;
-  text.geometry = geom;
-  old.dispose();
+  debugClockSystem.tick(world, {});
 
   // renderSystem.renderer.render(scene, camera);
 
@@ -107,6 +76,8 @@ const animate = () => {
 
 
   (() => {
+    const { threeComponent: { scene } } = queryThree.first!;
+
     const spectatorEntity = querySpectator.first!;
     const { renderTarget, camera } = spectatorEntity;
     const { width, height } = renderTarget;
