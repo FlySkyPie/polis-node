@@ -1,5 +1,5 @@
 declare module 'load-bmfont' {
-    export interface IResult {
+    export interface IBMFont {
         pages: string[]
         chars: Char[]
         kernings: Kerning[]
@@ -53,7 +53,7 @@ declare module 'load-bmfont' {
         blueChnl: number
     }
 
-    type ILoadFontCallboack = (error: Error | null, result: IResult) => void;
+    type ILoadFontCallboack = (error: Error | null, result: IBMFont) => void;
 
     function loadFont(opt: any, cb: ILoadFontCallboack): void;
 

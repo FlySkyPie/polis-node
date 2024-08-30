@@ -5,6 +5,12 @@ import { nonstandard, MediaStream } from 'wrtc';
 import createText from '@flyskypie/three-bmfont-text';
 import dayjs from 'dayjs';
 import sharp from 'sharp';
+import { World } from "miniplex";
+
+import type {
+  IThreeEntity, ISpectatorEntity, IEntity,
+  ITextureAssetEntity, IFontAssetEntity, IDebugClockEntity,
+} from './entities';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
@@ -21,60 +27,95 @@ const { doc, gl, requestAnimationFrame, } = init({
 });
 addThreeHelpers(THREE, gl);
 
+const world = new World<IEntity>();
+
+const querySpectator = world.with('camera', 'renderTarget');
+const queryFont = world.with('name', 'font');
+const queryFontTexture = world.with('name', 'texture');
+const queryDebugClock = world.with('object3D', 'mesh', 'isDebugClock');
+
+world.add<ISpectatorEntity>((() => {
+  const camera = new THREE.PerspectiveCamera(70, 1, 1, 1000);
+  camera.position.z = 25;
+
+  const renderTarget = new THREE.WebGLRenderTarget(500, 500, {
+    depthBuffer: false,
+  });
+
+  return { camera, renderTarget };
+})());
+
 const renderSystem = new RenderSystem(doc);
-
-const renderTarget = new THREE.WebGLRenderTarget(500, 500, {
-  depthBuffer: false,
-});
-
-const camera = new THREE.PerspectiveCamera(70, doc.innerWidth / doc.innerHeight, 1, 1000);
-camera.position.z = 15;
-camera.aspect = doc.innerWidth / doc.innerHeight;
-camera.updateProjectionMatrix();
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xeeeeee);
 
-const geometry = new THREE.BoxGeometry();
-const material = new THREE.MeshBasicMaterial({ color: 0xFACE8D });
-const mesh = new THREE.Mesh(geometry, material);
-scene.add(mesh);
-
-// helper
-scene.add(new THREE.AxesHelper(20));
-
-const size = 20;
-const divisions = 10;
-const gridHelper = new THREE.GridHelper(size, divisions);
-gridHelper.rotateX(Math.PI * 0.5)
-scene.add(gridHelper);
-
-const [font, texture] = await Promise.all([
+await Promise.all([
   loadFontPromise(path.resolve(__dirname, './assets/Simple.fnt')),
   loadTexturePromise(path.resolve(__dirname, './assets/Simple.png')),
-]);
+]).then(([font, texture]) => {
+  world.add<IFontAssetEntity>({
+    name: 'BasicFont',
+    font,
+  });
 
-const textMaterial = new THREE.MeshBasicMaterial({
-  map: texture,
-  transparent: true,
-  color: 'rgb(230, 230, 230)'
+  world.add<ITextureAssetEntity>({
+    name: 'BasicFontTexture',
+    texture,
+  });
 });
-const geom: THREE.BufferGeometry = createText({
-  text: dayjs().format('HH:mm:ss SSS'), // the string to render
-  font: font, // the bitmap font definition
-  width: 1000, // optional width for word-wrap
-});
-const text = new THREE.Mesh(geom, textMaterial);
 
-// scale it down so it fits in our 3D units
-var textAnchor = new THREE.Object3D();
-textAnchor.scale.set(0.05, -0.05, -0.05);
-textAnchor.position.setX(-1000 * 0.05 * 0.5 * 0.5)
-textAnchor.add(text);
-scene.add(textAnchor);
+const objectEntities: IThreeEntity[] = [{
+  object3D: new THREE.Mesh(
+    new THREE.BoxGeometry(),
+    new THREE.MeshBasicMaterial({ color: 0xFACE8D })),
+}, {
+  object3D: new THREE.AxesHelper(20),
+}, {
+  object3D: (() => {
+    const size = 20;
+    const divisions = 10;
+    const gridHelper = new THREE.GridHelper(size, divisions);
+    gridHelper.rotateX(Math.PI * 0.5);
+
+    return gridHelper;
+  })(),
+}];
+
+for (const { object3D } of objectEntities) {
+  scene.add(object3D);
+}
+
+world.add<IDebugClockEntity>((() => {
+  const material = new THREE.MeshBasicMaterial({
+    map: queryFontTexture.first!.texture,
+    transparent: true,
+    color: 'rgb(230, 230, 230)'
+  });
+  const geometry: THREE.BufferGeometry = createText({
+    text: dayjs().format('HH:mm:ss SSS'),
+    font: queryFont.first!.font,
+    width: 1000,
+  });
+  const mesh = new THREE.Mesh(geometry, material);
+
+  // scale it down so it fits in our 3D units
+  const textAnchor = new THREE.Object3D();
+  textAnchor.scale.set(0.05, -0.05, -0.05);
+  textAnchor.position.setX(-1000 * 0.05 * 0.5 * 0.5)
+  textAnchor.add(mesh);
+  scene.add(textAnchor);
+
+  return {
+    isDebugClock: true,
+    mesh: mesh,
+    object3D: textAnchor,
+  };
+})());
 
 let i = 0;
 
+//@ts-ignore
 const source = new nonstandard.RTCVideoSource();
 const track = source.createTrack();
 const stream = new MediaStream()
@@ -82,21 +123,19 @@ stream.addTrack(track)
 
 const animate = () => {
   requestAnimationFrame(animate);
-  const time = Date.now();
-  mesh.rotation.x = time * 0.0005;
-  mesh.rotation.y = time * 0.001;
 
   const geom: THREE.BufferGeometry = createText({
-    text: dayjs().format('HH:mm:ss SSS'), // the string to render
-    font: font, // the bitmap font definition
-    width: 1000, // optional width for word-wrap
+    text: dayjs().format('HH:mm:ss SSS'),
+    font: queryFont.first!.font,
+    width: 1000,
   });
 
+  const { mesh: text } = queryDebugClock.first!;
   const old = text.geometry;
   text.geometry = geom;
   old.dispose();
 
-  renderSystem.renderer.render(scene, camera);
+  // renderSystem.renderer.render(scene, camera);
 
   // const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
   // gl.readPixels(
@@ -106,34 +145,40 @@ const animate = () => {
   //   gl.UNSIGNED_BYTE,
   //   image);
 
-  renderSystem.renderer.setRenderTarget(renderTarget);
-  renderSystem.renderer.render(scene, camera);
 
-  const image: any = new Uint8Array(renderTarget.width * renderTarget.height * 4);
+  (() => {
+    const spectatorEntity = querySpectator.first!;
+    const { renderTarget, camera } = spectatorEntity;
+    const { width, height } = renderTarget;
+    renderSystem.renderer.setRenderTarget(renderTarget);
+    renderSystem.renderer.render(scene, camera);
 
-  renderSystem.renderer.readRenderTargetPixels(
-    renderTarget,
-    0, 0,
-    renderTarget.width, renderTarget.height,
-    image);
+    const image: any = new Uint8Array(width * height * 4);
 
-  sharp(image, {
-    raw: {
-      width: renderTarget.width,
-      height: renderTarget.height,
-      channels: 4,
-    }
-  }).flip()
-    .toBuffer()
-    .then(buffer => {
-      const i420Data = new Uint8ClampedArray(renderTarget.width * renderTarget.height * 1.5);
-      const i420Frame = { width: renderTarget.width, height: renderTarget.height, data: i420Data };
-      const rgbaFrame = { width: renderTarget.width, height: renderTarget.height, data: buffer };
+    renderSystem.renderer.readRenderTargetPixels(
+      renderTarget,
+      0, 0,
+      width, height,
+      image);
 
-      nonstandard.rgbaToI420(rgbaFrame, i420Frame);
+    sharp(image, {
+      raw: {
+        width: width,
+        height: height,
+        channels: 4,
+      }
+    }).flip()
+      .toBuffer()
+      .then(buffer => {
+        const i420Data = new Uint8ClampedArray(width * height * 1.5);
+        const i420Frame = { width: width, height: height, data: i420Data };
+        const rgbaFrame = { width: width, height: height, data: buffer };
 
-      source.onFrame(i420Frame);
-    });
+        nonstandard.rgbaToI420(rgbaFrame, i420Frame);
+
+        source.onFrame(i420Frame);
+      });
+  })();
 
   renderSystem.renderer.setRenderTarget(null);
   i++;

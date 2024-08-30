@@ -1,9 +1,9 @@
 // import * as THREE from 'three';
 import type { Texture, } from 'three';
 import { TextureLoader } from 'three';
-import loadFont, { type IResult } from 'load-bmfont';
+import loadFont, { type IBMFont } from 'load-bmfont';
 
-export const loadFontPromise = (fontPath: string) => new Promise<IResult>((resove, reject) => {
+export const loadFontPromise = (fontPath: string) => new Promise<IBMFont>((resove, reject) => {
     loadFont(fontPath, (err, font) => {
         if (err) {
             reject(err);
