@@ -26,8 +26,8 @@ export class RenderSystem implements ISystem {
         this.renderer = renderer;
     }
 
-    init(): Promise<void> {
-        throw new Error("Method not implemented.");
+    async init() {
+        /** Do nothing */
     }
 
     tick(world: unknown, queries: unknown): void {

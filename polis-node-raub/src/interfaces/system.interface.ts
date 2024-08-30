@@ -1,8 +1,12 @@
+import type { World } from "miniplex";
+
+import type { IEntity } from "../entities";
+
 export interface ISystem {
     /**
      * Initialize the system.
      */
-    init(): Promise<void>;
+    init(world: World<IEntity>): Promise<void>;
 
     /**
      * Process a tick of the game. 

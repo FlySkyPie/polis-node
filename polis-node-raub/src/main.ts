@@ -1,4 +1,3 @@
-import path from 'path';
 import * as THREE from 'three';
 import { init, addThreeHelpers } from '3d-core-raub';
 import { nonstandard, MediaStream } from 'wrtc';
@@ -8,14 +7,13 @@ import sharp from 'sharp';
 import { World } from "miniplex";
 
 import type {
-  IThreeEntity, ISpectatorEntity, IEntity,
-  ITextureAssetEntity, IFontAssetEntity, IDebugClockEntity,
+  IThreeEntity, ISpectatorEntity, IEntity, IDebugClockEntity,
 } from './entities';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
-import { loadFontPromise, loadTexturePromise } from './utilities/load';
 import { RenderSystem } from './systems/render.system';
+import { AssetSystem } from './systems/asset.system';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -46,24 +44,15 @@ world.add<ISpectatorEntity>((() => {
 })());
 
 const renderSystem = new RenderSystem(doc);
+const assetSystem = new AssetSystem();
+
+await Promise.all([
+  renderSystem,
+  assetSystem,
+].map(item => item.init(world)));
 
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xeeeeee);
-
-await Promise.all([
-  loadFontPromise(path.resolve(__dirname, './assets/Simple.fnt')),
-  loadTexturePromise(path.resolve(__dirname, './assets/Simple.png')),
-]).then(([font, texture]) => {
-  world.add<IFontAssetEntity>({
-    name: 'BasicFont',
-    font,
-  });
-
-  world.add<ITextureAssetEntity>({
-    name: 'BasicFontTexture',
-    texture,
-  });
-});
 
 const objectEntities: IThreeEntity[] = [{
   object3D: new THREE.Mesh(
