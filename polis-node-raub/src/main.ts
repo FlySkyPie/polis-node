@@ -6,16 +6,14 @@ import dayjs from 'dayjs';
 import sharp from 'sharp';
 import { World } from "miniplex";
 
-import type {
-  IThreeEntity, ISpectatorEntity, IEntity, IDebugClockEntity,
-  IThreeSingletonEntity,
-} from './entities';
+import type { IEntity, IDebugClockEntity, } from './entities';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
 import { RenderSystem } from './systems/render.system';
 import { AssetSystem } from './systems/asset.system';
 import { GenesisSystem } from './systems/genesis.system';
+import { SampleSystem } from './systems/sample.system';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -37,35 +35,15 @@ const queryThree = world.with('threeComponent');
 
 const genesisSystem = new GenesisSystem();
 const assetSystem = new AssetSystem();
+const sampleSystem = new SampleSystem();
 const renderSystem = new RenderSystem(doc);
 
 await genesisSystem.init(world);
 await Promise.all([
   assetSystem,
+  sampleSystem,
   renderSystem,
 ].map(item => item.init(world)));
-
-const objectEntities: IThreeEntity[] = [{
-  object3D: new THREE.Mesh(
-    new THREE.BoxGeometry(),
-    new THREE.MeshBasicMaterial({ color: 0xFACE8D })),
-}, {
-  object3D: new THREE.AxesHelper(20),
-}, {
-  object3D: (() => {
-    const size = 20;
-    const divisions = 10;
-    const gridHelper = new THREE.GridHelper(size, divisions);
-    gridHelper.rotateX(Math.PI * 0.5);
-
-    return gridHelper;
-  })(),
-}];
-
-for (const { object3D } of objectEntities) {
-  const { threeComponent: { scene } } = queryThree.first!;
-  scene.add(object3D);
-}
 
 const { threeComponent: { scene } } = queryThree.first!;
 world.add<IDebugClockEntity>((() => {
