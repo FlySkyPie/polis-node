@@ -2,30 +2,13 @@ import path from 'path';
 import * as THREE from 'three';
 import { init, addThreeHelpers } from '3d-core-raub';
 import { nonstandard, MediaStream } from 'wrtc';
-import loadFont, { type IResult } from 'load-bmfont';
 import createText from '@flyskypie/three-bmfont-text';
 import dayjs from 'dayjs';
 import sharp from 'sharp';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
-
-export const loadFontPromise = (fontPath: string) => new Promise<IResult>((resove, reject) => {
-  loadFont(fontPath, (err, font) => {
-    if (err) {
-      reject(err);
-      return;
-    }
-    resove(font);
-  })
-});
-
-export const loadTexturePromise = (texturePath: string) => new Promise<THREE.Texture>((resove) => {
-  const loader = new THREE.TextureLoader();
-  const texture = loader.load(texturePath);
-
-  resove(texture);
-});
+import { loadFontPromise, loadTexturePromise } from './utilities/load';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -33,6 +16,7 @@ const { doc, gl, requestAnimationFrame, } = init({
   width: 400,
   height: 300,
   title: "OwO",
+  isVisible: false,
 });
 addThreeHelpers(THREE, gl);
 
