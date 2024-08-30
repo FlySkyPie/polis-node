@@ -5,7 +5,7 @@ import chalk from 'chalk'
 import { Server } from 'socket.io'
 import { nanoid } from 'nanoid'
 
-import type { ISpectatorServer } from './interfaces/spectator-server.intercace'
+import type { ISpectatorServer } from './interfaces/spectator-server.interface'
 import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interface'
 // import { ipcMain } from 'electron'
 

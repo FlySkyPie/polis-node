@@ -1,6 +1,6 @@
 import { RTCSessionDescription } from 'wrtc';
 
-import type { ISpectatorServer } from './interfaces/spectator-server.intercace'
+import type { ISpectatorServer } from './interfaces/spectator-server.interface'
 import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interface'
 import { TransmitterSession } from './transmitter-session'
 
