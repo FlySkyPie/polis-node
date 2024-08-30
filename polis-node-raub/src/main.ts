@@ -8,12 +8,14 @@ import { World } from "miniplex";
 
 import type {
   IThreeEntity, ISpectatorEntity, IEntity, IDebugClockEntity,
+  IThreeSingletonEntity,
 } from './entities';
 
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
 import { RenderSystem } from './systems/render.system';
 import { AssetSystem } from './systems/asset.system';
+import { GenesisSystem } from './systems/genesis.system';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -31,28 +33,17 @@ const querySpectator = world.with('camera', 'renderTarget');
 const queryFont = world.with('name', 'font');
 const queryFontTexture = world.with('name', 'texture');
 const queryDebugClock = world.with('object3D', 'mesh', 'isDebugClock');
+const queryThree = world.with('threeComponent');
 
-world.add<ISpectatorEntity>((() => {
-  const camera = new THREE.PerspectiveCamera(70, 1, 1, 1000);
-  camera.position.z = 25;
-
-  const renderTarget = new THREE.WebGLRenderTarget(500, 500, {
-    depthBuffer: false,
-  });
-
-  return { camera, renderTarget };
-})());
-
-const renderSystem = new RenderSystem(doc);
+const genesisSystem = new GenesisSystem();
 const assetSystem = new AssetSystem();
+const renderSystem = new RenderSystem(doc);
 
+await genesisSystem.init(world);
 await Promise.all([
-  renderSystem,
   assetSystem,
+  renderSystem,
 ].map(item => item.init(world)));
-
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xeeeeee);
 
 const objectEntities: IThreeEntity[] = [{
   object3D: new THREE.Mesh(
@@ -72,9 +63,11 @@ const objectEntities: IThreeEntity[] = [{
 }];
 
 for (const { object3D } of objectEntities) {
+  const { threeComponent: { scene } } = queryThree.first!;
   scene.add(object3D);
 }
 
+const { threeComponent: { scene } } = queryThree.first!;
 world.add<IDebugClockEntity>((() => {
   const material = new THREE.MeshBasicMaterial({
     map: queryFontTexture.first!.texture,
