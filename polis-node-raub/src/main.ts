@@ -29,15 +29,29 @@ export const loadTexturePromise = (texturePath: string) => new Promise<THREE.Tex
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
+  isWebGL2: true,
   width: 400,
   height: 300,
   title: "OwO",
 });
 addThreeHelpers(THREE, gl);
 
-const renderer = new THREE.WebGLRenderer({ preserveDrawingBuffer: true, });
+const renderer = new THREE.WebGLRenderer({
+  antialias: false,
+  alpha: false,
+  depth: false,
+  powerPreference: 'high-performance',
+  preserveDrawingBuffer: false,
+});
+renderer.shadowMap.autoUpdate = false;
+renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
+renderer.toneMapping = THREE.NoToneMapping;
 renderer.setPixelRatio(doc.devicePixelRatio);
 renderer.setSize(doc.innerWidth, doc.innerHeight);
+
+const renderTarget = new THREE.WebGLRenderTarget(500, 500, {
+  depthBuffer: false,
+});
 
 const camera = new THREE.PerspectiveCamera(70, doc.innerWidth / doc.innerHeight, 1, 1000);
 camera.position.z = 15;
@@ -54,6 +68,12 @@ scene.add(mesh);
 
 // helper
 scene.add(new THREE.AxesHelper(20));
+
+const size = 20;
+const divisions = 10;
+const gridHelper = new THREE.GridHelper(size, divisions);
+gridHelper.rotateX(Math.PI * 0.5)
+scene.add(gridHelper);
 
 const [font, texture] = await Promise.all([
   loadFontPromise(path.resolve(__dirname, './assets/Simple.fnt')),
@@ -104,35 +124,44 @@ const animate = () => {
 
   renderer.render(scene, camera);
 
-  const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
+  // const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
+  // gl.readPixels(
+  //   0, 0,
+  //   doc.w, doc.h,
+  //   gl.RGBA,
+  //   gl.UNSIGNED_BYTE,
+  //   image);
 
-  gl.readPixels(
+  renderer.setRenderTarget(renderTarget);
+  renderer.render(scene, camera);
+
+  const image: any = new Uint8Array(renderTarget.width * renderTarget.height * 4);
+
+  renderer.readRenderTargetPixels(
+    renderTarget,
     0, 0,
-    doc.w, doc.h,
-    gl.RGBA,
-    gl.UNSIGNED_BYTE,
+    renderTarget.width, renderTarget.height,
     image);
 
   sharp(image, {
     raw: {
-      width: doc.w,
-      height: doc.h,
+      width: renderTarget.width,
+      height: renderTarget.height,
       channels: 4,
     }
   }).flip()
     .toBuffer()
     .then(buffer => {
-      const i420Data = new Uint8ClampedArray(doc.w * doc.h * 1.5);
-      const i420Frame = { width: doc.w, height: doc.h, data: i420Data };
-      const rgbaFrame = { width: doc.w, height: doc.h, data: buffer };
+      const i420Data = new Uint8ClampedArray(renderTarget.width * renderTarget.height * 1.5);
+      const i420Frame = { width: renderTarget.width, height: renderTarget.height, data: i420Data };
+      const rgbaFrame = { width: renderTarget.width, height: renderTarget.height, data: buffer };
 
       nonstandard.rgbaToI420(rgbaFrame, i420Frame);
 
       source.onFrame(i420Frame);
-    })
+    });
 
-  // fs.ensureDirSync("./data");
-  // fs.writeFileSync(`./data/${String(i).padStart(5, "0")}.rgba`, image, {});
+  renderer.setRenderTarget(null);
   i++;
 };
 
