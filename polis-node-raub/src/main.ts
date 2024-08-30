@@ -9,6 +9,7 @@ import sharp from 'sharp';
 import { StreamBroadcastor } from './stream-broadcastor';
 import { SpectatorServer } from './spectator-server';
 import { loadFontPromise, loadTexturePromise } from './utilities/load';
+import { RenderSystem } from './systems/render.system';
 
 const { doc, gl, requestAnimationFrame, } = init({
   isGles3: true,
@@ -20,18 +21,7 @@ const { doc, gl, requestAnimationFrame, } = init({
 });
 addThreeHelpers(THREE, gl);
 
-const renderer = new THREE.WebGLRenderer({
-  antialias: false,
-  alpha: false,
-  depth: false,
-  powerPreference: 'high-performance',
-  preserveDrawingBuffer: false,
-});
-renderer.shadowMap.autoUpdate = false;
-renderer.outputColorSpace = THREE.LinearSRGBColorSpace;
-renderer.toneMapping = THREE.NoToneMapping;
-renderer.setPixelRatio(doc.devicePixelRatio);
-renderer.setSize(doc.innerWidth, doc.innerHeight);
+const renderSystem = new RenderSystem(doc);
 
 const renderTarget = new THREE.WebGLRenderTarget(500, 500, {
   depthBuffer: false,
@@ -106,7 +96,7 @@ const animate = () => {
   text.geometry = geom;
   old.dispose();
 
-  renderer.render(scene, camera);
+  renderSystem.renderer.render(scene, camera);
 
   // const image: any = new Uint8ClampedArray(doc.w * doc.h * 4);
   // gl.readPixels(
@@ -116,12 +106,12 @@ const animate = () => {
   //   gl.UNSIGNED_BYTE,
   //   image);
 
-  renderer.setRenderTarget(renderTarget);
-  renderer.render(scene, camera);
+  renderSystem.renderer.setRenderTarget(renderTarget);
+  renderSystem.renderer.render(scene, camera);
 
   const image: any = new Uint8Array(renderTarget.width * renderTarget.height * 4);
 
-  renderer.readRenderTargetPixels(
+  renderSystem.renderer.readRenderTargetPixels(
     renderTarget,
     0, 0,
     renderTarget.width, renderTarget.height,
@@ -145,7 +135,7 @@ const animate = () => {
       source.onFrame(i420Frame);
     });
 
-  renderer.setRenderTarget(null);
+  renderSystem.renderer.setRenderTarget(null);
   i++;
 };
 
