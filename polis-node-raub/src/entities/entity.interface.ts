@@ -1,5 +1,8 @@
 import type { Mesh, Object3D, PerspectiveCamera, Scene, Texture, WebGLRenderTarget } from "three";
 import type { IBMFont } from "load-bmfont";
+import type { RTCVideoSource } from "wrtc/lib/binding";
+
+import type { IEvent } from "./event.interface";
 
 /**
  * Singleton component for Three.js.
@@ -32,9 +35,27 @@ export interface IEventEntity {
 };
 
 export interface ISpectatorEntity {
+  id: string;
+
+  /**
+   * Provide viewport of the spectator.
+   */
   camera: PerspectiveCamera,
+
+  /**
+   * Provide GL context to render viewport of the spectator.
+   */
   renderTarget: WebGLRenderTarget,
-  buffer: Uint8Array,
+
+  /**
+   * Store pixels of rendered viewport.
+   */
+  // buffer: Uint8Array,
+
+  /**
+   * Used to stream viewport to client.
+   */
+  source: RTCVideoSource,
 };
 
 export interface IFontAssetEntity {
@@ -55,5 +76,6 @@ export type IEntity = Partial<
   IFontAssetEntity &
   IThreeSingletonEntity &
   IDebugClockEntity &
-  IThreeEntity
+  IThreeEntity &
+  IEvent
 >;

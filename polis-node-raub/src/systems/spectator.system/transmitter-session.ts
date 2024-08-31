@@ -1,11 +1,12 @@
 import { RTCPeerConnection, RTCIceCandidate } from 'wrtc';
 
-import { TypedEventEmitter } from './utilities/typed-event-emitter';
 import type {
   IRTCOfferable,
   IRTCOfferableEventMap,
   ITransmittable
 } from '@packages/webrtc-interface';
+
+import { TypedEventEmitter } from './typed-event-emitter';
 
 const offerOptions = {
   offerToReceiveVideo: true

@@ -18,16 +18,16 @@ export class GenesisSystem implements ISystem {
             };
         })());
 
-        world.add<ISpectatorEntity>((() => {
-            const camera = new PerspectiveCamera(70, 1, 1, 1000);
-            camera.position.z = 25;
+        // world.add<ISpectatorEntity>((() => {
+        //     const camera = new PerspectiveCamera(70, 1, 1, 1000);
+        //     camera.position.z = 25;
 
-            const renderTarget = new WebGLRenderTarget(500, 500, {
-                depthBuffer: false,
-            });
+        //     const renderTarget = new WebGLRenderTarget(500, 500, {
+        //         depthBuffer: false,
+        //     });
 
-            return { camera, renderTarget };
-        })());
+        //     return { camera, renderTarget, buffer: new Uint8Array() };
+        // })());
     }
 
     tick(world: unknown, queries: unknown): void {
