@@ -1,11 +1,11 @@
 import type { Socket } from 'socket.io';
-import type { World } from 'miniplex';
+import type { Query, World } from 'miniplex';
 import express from 'express';
 import http from 'http';
 import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
-import { PerspectiveCamera, WebGLRenderTarget } from 'three';
+import { PerspectiveCamera, Spherical, WebGLRenderTarget } from 'three';
 
 import type { ISystem } from '../../interfaces/system.interface';
 import type { IEntity, ISpectatorEntity } from '../../entities';
@@ -16,6 +16,8 @@ import type { ISpectatorServer } from './interfaces/spectator-server.interface';
 import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interface';
 import type { IInnerEvent, } from './interfaces/inner-event.interface';
 import { StreamBroadcastor } from './stream-broadcastor';
+import { InnerEventType } from './inner-event-type';
+import { isMovementEvent, isRotationEvent } from './utilities';
 
 export class SpectatorSystem implements ISystem, ISpectatorServer {
     private secssions = new Map<string, Socket>();
@@ -26,6 +28,8 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
      * Used to convert tasks from socket space to ECS space.
      */
     private eventQueue: IInnerEvent[] = [];
+
+    private querySpectator!: Query<ISpectatorEntity>;
 
     constructor() {
         const app = express()
@@ -53,29 +57,55 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
     }
 
     public async init(world: World<IEntity>): Promise<void> {
+        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller');
 
+        this.querySpectator = querySpectator;
     }
 
     public tick(world: World<IEntity>): void {
+        // Process inner events.
         for (const event of this.eventQueue) {
             if (event.eventType === EventType.SpectatorDelete) {
                 world.add(event);
                 continue;
             }
-            const camera = new PerspectiveCamera(70, 1, 1, 1000);
-            camera.position.z = 25;
+            if (event.eventType === InnerEventType.SpectatorCreate) {
+                const camera = new PerspectiveCamera(70, 1, 1, 1000);
+                camera.position.z = 25;
 
-            const renderTarget = new WebGLRenderTarget(500, 500, {
-                depthBuffer: false,
-            });
+                const renderTarget = new WebGLRenderTarget(500, 500, {
+                    depthBuffer: false,
+                });
 
-            const { payload: { id, source } } = event;
-            world.add<ISpectatorEntity>({
-                id,
-                source,
-                camera,
-                renderTarget,
-            });
+                const { payload: { id, source } } = event;
+                world.add<ISpectatorEntity>({
+                    id,
+                    source,
+                    camera,
+                    renderTarget,
+                    controller: {
+                        forward: null,
+                        sidemove: null,
+                        spherical: new Spherical(),
+                    },
+                });
+            }
+        }
+
+        const controlEvents = this.eventQueue.filter(isMovementEvent);
+        const rotationEvents = this.eventQueue.filter(isRotationEvent);
+        for (const spectator of this.querySpectator) {
+            const { id, controller, } = spectator;
+            const movementEvent = controlEvents.findLast(event => event.payload.id === id);
+            if (movementEvent) {
+                controller.forward = movementEvent.payload.forward;
+                controller.sidemove = movementEvent.payload.sidemove;
+            }
+
+            const _rotationEvents = rotationEvents.filter(({ payload }) => payload.id === id);
+            // TODO: Update spherical
+
+            // TODO: Update camera of spectator.
         }
 
         this.eventQueue.length = 0;
@@ -119,7 +149,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
         this.broadcastor.connection(clientId, stream);
 
         this.eventQueue.push({
-            eventType: EventType.SpectatorCreate,
+            eventType: InnerEventType.SpectatorCreate,
             payload: {
                 id: clientId,
                 source,

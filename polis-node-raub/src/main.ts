@@ -47,14 +47,9 @@ await Promise.all([
   sampleSystem,
   renderSystem,
   poolCleanSystem,
+  spectatorSystem,
 ].map(item => item.init(world)));
 await debugClockSystem.init(world);
-
-//@ts-ignore The third party type declaration is not complete.
-const source = new nonstandard.RTCVideoSource();
-const track = source.createTrack();
-const stream = new MediaStream()
-stream.addTrack(track)
 
 const gameLoop = () => {
   requestAnimationFrame(gameLoop);

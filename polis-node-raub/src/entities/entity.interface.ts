@@ -1,4 +1,6 @@
-import type { Mesh, Object3D, PerspectiveCamera, Scene, Texture, WebGLRenderTarget } from "three";
+import type {
+  Mesh, Object3D, PerspectiveCamera, Scene, Spherical, Texture, WebGLRenderTarget
+} from "three";
 import type { IBMFont } from "load-bmfont";
 import type { RTCVideoSource } from "wrtc/lib/binding";
 
@@ -34,6 +36,12 @@ export interface IEventEntity {
   events: unknown[];
 };
 
+export interface IControlState {
+  forward: 'forward' | 'backward' | null;
+  sidemove: 'right' | 'left' | null;
+  spherical: Spherical;
+}
+
 export interface ISpectatorEntity {
   id: string;
 
@@ -56,6 +64,8 @@ export interface ISpectatorEntity {
    * Used to stream viewport to client.
    */
   source: RTCVideoSource,
+
+  controller: IControlState;
 };
 
 export interface IFontAssetEntity {

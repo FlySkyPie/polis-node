@@ -35,7 +35,7 @@ export class RenderSystem implements ISystem {
     }
 
     async init(world: World<IEntity>) {
-        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source');
+        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller');
         const queryThree = world.with('threeComponent');
 
         this.querySpectator = querySpectator;
