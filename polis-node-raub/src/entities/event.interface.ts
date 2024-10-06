@@ -1,5 +1,3 @@
-import type { RTCVideoSource } from 'wrtc/lib/binding';
-
 import { EventType } from '../constants/event-type';
 
 export interface ISpectatorDeleteEvent {
@@ -9,14 +7,5 @@ export interface ISpectatorDeleteEvent {
     }
 }
 
-export interface ISpectatorCreateEvent {
-    eventType: EventType.SpectatorCreate,
-    payload: {
-        id: string;
-        source: RTCVideoSource,
-    }
-}
-
 export type IEvent = |
-    ISpectatorCreateEvent |
     ISpectatorDeleteEvent;

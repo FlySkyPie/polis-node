@@ -8,14 +8,14 @@ import { nonstandard, MediaStream } from 'wrtc';
 import { PerspectiveCamera, WebGLRenderTarget } from 'three';
 
 import type { ISystem } from '../../interfaces/system.interface';
-import type { IEntity, ISpectatorCreateEvent, ISpectatorDeleteEvent, ISpectatorEntity } from '../../entities';
+import type { IEntity, ISpectatorEntity } from '../../entities';
 import { EventType } from '../../constants/event-type';
 import { logger } from '../../utilities/logger';
 
-import type { ISpectatorServer } from './spectator-server.interface';
-import type { IStreamBroadcastor } from './stream-broadcastor.interface';
+import type { ISpectatorServer } from './interfaces/spectator-server.interface';
+import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interface';
+import type { IInnerEvent, } from './interfaces/inner-event.interface';
 import { StreamBroadcastor } from './stream-broadcastor';
-
 
 export class SpectatorSystem implements ISystem, ISpectatorServer {
     private secssions = new Map<string, Socket>();
@@ -25,7 +25,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
     /**
      * Used to convert tasks from socket space to ECS space.
      */
-    private eventQueue: (ISpectatorDeleteEvent | ISpectatorCreateEvent)[] = [];
+    private eventQueue: IInnerEvent[] = [];
 
     constructor() {
         const app = express()
