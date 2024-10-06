@@ -1,13 +1,17 @@
-import { useEffect, useState } from "react";
+import type { MouseEventHandler, } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import { useSocket } from "../../context/socket-context";
 import { ReceiverSession } from "../../session/receiver-session";
 
 import styles from "./styles.module.scss";
+import { useIsLock } from "./use-is-lock";
 
 export const MainViewport: React.FC = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const { socket } = useSocket();
+  const { isLock } = useIsLock({ lockTarget: video });
+  // const [isLock, setLock] = useState(false);
 
   useEffect(() => {
     if (!video || !socket) {
@@ -41,9 +45,24 @@ export const MainViewport: React.FC = () => {
     };
   }, [socket, video]);
 
+  const handleMouseMove = useCallback<MouseEventHandler>((event) => {
+    if (!isLock) {
+      return;
+    }
+    // Ready been used for control camera.
+    const { movementX, movementY } = event;
+    console.log(movementX, movementY);
+  }, [isLock]);
+
   return (
     <div className={styles.root}>
-      <video ref={(ref) => setVideo(ref)} className={styles.video} autoPlay />
+      <video
+        ref={(ref) => setVideo(ref)}
+        className={styles.video}
+        autoPlay
+        onClick={({ currentTarget }) => currentTarget.requestPointerLock()}
+        onMouseMove={handleMouseMove}
+      />
     </div>
   );
 };
