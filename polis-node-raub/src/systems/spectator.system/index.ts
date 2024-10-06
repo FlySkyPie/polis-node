@@ -1,22 +1,21 @@
-import type { Socket } from 'socket.io'
-import type { World } from 'miniplex'
-import express from 'express'
-import http from 'http'
-import chalk from 'chalk'
-import { Server } from 'socket.io'
-import { nanoid } from 'nanoid'
+import type { Socket } from 'socket.io';
+import type { World } from 'miniplex';
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
+import { PerspectiveCamera, WebGLRenderTarget } from 'three';
 
-import type { ISystem } from '../../interfaces/system.interface'
-import type { IEntity, ISpectatorCreateEvent, ISpectatorDeleteEvent, ISpectatorEntity } from '../../entities'
-import { EventType } from '../../constants/event-type'
+import type { ISystem } from '../../interfaces/system.interface';
+import type { IEntity, ISpectatorCreateEvent, ISpectatorDeleteEvent, ISpectatorEntity } from '../../entities';
+import { EventType } from '../../constants/event-type';
+import { logger } from '../../utilities/logger';
 
-import type { ISpectatorServer } from './spectator-server.interface'
-import type { IStreamBroadcastor } from './stream-broadcastor.interface'
-import { StreamBroadcastor } from './stream-broadcastor'
-import { PerspectiveCamera, WebGLRenderTarget } from 'three'
+import type { ISpectatorServer } from './spectator-server.interface';
+import type { IStreamBroadcastor } from './stream-broadcastor.interface';
+import { StreamBroadcastor } from './stream-broadcastor';
 
-const PRINT_LOG = false
 
 export class SpectatorSystem implements ISystem, ISpectatorServer {
     private secssions = new Map<string, Socket>();
@@ -44,7 +43,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
         io.on('connection', this.handleConnect);
 
         server.listen(process.env.NODE_ENV === 'development' ? 5959 : 0, () => {
-            console.log('listening on *:', server.address())
+            logger.info('listening on *:', server.address());
         });
 
         const broadcastor = new StreamBroadcastor();
@@ -92,7 +91,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
             throw new Error()
         }
 
-        PRINT_LOG && console.log(chalk.red('[ipcMain->Socket]'), 'icecandidate', candidate)
+        logger.debug(`[ipcMain->Socket] icecandidate`, candidate);
         socket.emit('icecandidate', candidate)
     }
 
@@ -102,14 +101,14 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
             throw new Error()
         }
 
-        PRINT_LOG && console.log(chalk.red('[ipcMain->Socket]'), 'offer', description)
+        logger.debug(`[ipcMain->Socket] offer`, description);
         socket.emit('offer', description)
     }
 
     private handleConnect = (socket: Socket) => {
         const clientId = nanoid();
         this.secssions.set(clientId, socket);
-        PRINT_LOG && console.log('a user connected', clientId);
+        logger.info('a user connected', { clientId });
 
         //@ts-ignore The third party type declaration is not complete.
         const source = new nonstandard.RTCVideoSource();
@@ -129,7 +128,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
 
         socket.on('disconnect', () => {
             this.secssions.delete(clientId);
-            PRINT_LOG && console.log('user disconnected', clientId);
+            logger.info('user disconnected', { clientId });
 
             this.broadcastor.disconnect(clientId);
 
@@ -140,12 +139,12 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
         })
 
         socket.on('answer', (description: RTCSessionDescriptionInit) => {
-            PRINT_LOG && console.log(chalk.red('[socket->webContents]'), 'answer', description);
+            logger.debug(`[socket->webContents] answer`, description);
             this.broadcastor.answer(clientId, description);
         })
 
         socket.on('icecandidate', (candidate: RTCIceCandidate) => {
-            PRINT_LOG && console.log(chalk.red('[socket->webContents]'), 'icecandidate', candidate);
+            logger.debug(`[socket->webContents] icecandidate`, candidate);
             this.broadcastor.icecandidate(clientId, candidate);
         })
     }

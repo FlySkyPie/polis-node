@@ -3,6 +3,7 @@ import { RTCSessionDescription } from 'wrtc';
 import type { ISpectatorServer } from './spectator-server.interface'
 import type { IStreamBroadcastor } from './stream-broadcastor.interface'
 import { TransmitterSession } from './transmitter-session'
+import { logger } from '../../utilities/logger';
 
 export class StreamBroadcastor implements IStreamBroadcastor {
   private sessions = new Map<string, TransmitterSession>()
@@ -16,7 +17,7 @@ export class StreamBroadcastor implements IStreamBroadcastor {
   }
 
   public disconnect(clientId: string): void {
-    console.log('[Browser]', 'disconnect', clientId)
+    logger.info(`[Browser] disconnect`, { clientId });
 
     const session = this.sessions.get(clientId)
     if (!session) {
@@ -34,20 +35,18 @@ export class StreamBroadcastor implements IStreamBroadcastor {
 
     const server = this.server;
 
-    console.log('[Browser', 'connection', clientId);
+    logger.info(`[Browser] connection`, { clientId });
 
     const transmitter = new TransmitterSession();
 
     transmitter.on('icecandidate', (candidate) => {
-
-      console.log('[transmitter->responseEventEmitter]', 'icecandidate', clientId, candidate);
+      logger.debug(`[transmitter->responseEventEmitter] icecandidate`, clientId, candidate);
 
       server.icecandidate(clientId, candidate);
     });
 
     transmitter.on('offer', (description) => {
-
-      console.log('[transmitter->responseEventEmitter]', 'offer', clientId, description);
+      logger.debug(`[transmitter->responseEventEmitter] offer`, clientId, description);
 
       server.offer(
         clientId,
@@ -61,25 +60,25 @@ export class StreamBroadcastor implements IStreamBroadcastor {
   }
 
   public answer(clientId: string, description: RTCSessionDescriptionInit): void {
-    console.log('[Browser]', 'answer', description);
+    logger.debug(`[Browser] answer`, description);
 
     const session = this.sessions.get(clientId);
     if (!session) {
       throw new Error();
     }
-    console.log('[Session]', 'answer', description);
+    logger.debug(`[Session] answer`, description);
     session.answer(description);
   }
 
   public icecandidate(clientId: string, candidate: RTCIceCandidate): void {
-    console.log('[Browser', 'icecandidate', candidate);
+    logger.debug(`[Browser] icecandidate`, candidate);
 
     const session = this.sessions.get(clientId);
     if (!session) {
       throw new Error();
     }
 
-    console.log('[Session]', 'addIceCandidate', candidate);
+    logger.debug(`[Session] addIceCandidate`, candidate);
     session.addIceCandidate(candidate);
   }
 }
