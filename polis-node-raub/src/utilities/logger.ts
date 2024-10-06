@@ -5,7 +5,10 @@ export const logger = winston.createLogger({
         new winston.transports.File({
             level: 'debug',
             filename: 'debug.log',
-            format: winston.format.json(),
+            format: winston.format.combine(
+                winston.format.timestamp(),
+                winston.format.json(),
+            )
         }),
     ],
 });
