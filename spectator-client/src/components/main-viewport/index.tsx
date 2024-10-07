@@ -46,13 +46,16 @@ export const MainViewport: React.FC = () => {
   }, [socket, video]);
 
   const handleMouseMove = useCallback<MouseEventHandler>((event) => {
-    if (!isLock) {
+    if (!isLock || !socket) {
       return;
     }
-    // Ready been used for control camera.
+
     const { movementX, movementY } = event;
-    console.log(movementX, movementY);
-  }, [isLock]);
+    socket.emit('Spectator.Control.Rotation', {
+      movementX,
+      movementY
+    });
+  }, [isLock, socket]);
 
   return (
     <div className={styles.root}>

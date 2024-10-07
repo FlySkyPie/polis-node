@@ -5,7 +5,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
-import { PerspectiveCamera, Spherical, WebGLRenderTarget } from 'three';
+import { PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
 
 import type { ISystem } from '../../interfaces/system.interface';
 import type { IEntity, ISpectatorEntity } from '../../entities';
@@ -18,6 +18,8 @@ import type { IInnerEvent, } from './interfaces/inner-event.interface';
 import { StreamBroadcastor } from './stream-broadcastor';
 import { InnerEventType } from './inner-event-type';
 import { isMovementEvent, isRotationEvent } from './utilities';
+
+const _twoPI = 2 * Math.PI;
 
 export class SpectatorSystem implements ISystem, ISpectatorServer {
     private secssions = new Map<string, Socket>();
@@ -86,7 +88,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
                     controller: {
                         forward: null,
                         sidemove: null,
-                        spherical: new Spherical(),
+                        spherical: new Spherical(1, Math.PI * 0.5, Math.PI),
                     },
                 });
             }
@@ -95,17 +97,56 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
         const controlEvents = this.eventQueue.filter(isMovementEvent);
         const rotationEvents = this.eventQueue.filter(isRotationEvent);
         for (const spectator of this.querySpectator) {
-            const { id, controller, } = spectator;
+            const { id, controller, camera } = spectator;
             const movementEvent = controlEvents.findLast(event => event.payload.id === id);
             if (movementEvent) {
                 controller.forward = movementEvent.payload.forward;
                 controller.sidemove = movementEvent.payload.sidemove;
+
+                // TODO: Move camera.
             }
 
             const _rotationEvents = rotationEvents.filter(({ payload }) => payload.id === id);
-            // TODO: Update spherical
+            const delta = _rotationEvents.reduce((total, event) => {
+                total.theta += event.payload.moveAzimuthAngle;
+                total.phi += event.payload.movePolarAngle;
+                return total;
+            }, { theta: 0, phi: 0 });
 
-            // TODO: Update camera of spectator.
+            if (!delta.theta && !delta.phi) {
+                continue;
+            }
+
+            const { spherical } = controller;
+
+            spherical.theta += delta.theta;
+            spherical.phi += delta.phi;
+
+            let min = - Infinity;
+            let max = Infinity;
+
+            if (isFinite(min) && isFinite(max)) {
+                if (min < - Math.PI) min += _twoPI; else if (min > Math.PI) min -= _twoPI;
+                if (max < - Math.PI) max += _twoPI; else if (max > Math.PI) max -= _twoPI;
+
+                if (min <= max) {
+                    spherical.theta = Math.max(min, Math.min(max, spherical.theta));
+                } else {
+                    spherical.theta = (spherical.theta > (min + max) / 2) ?
+                        Math.max(min, spherical.theta) :
+                        Math.min(max, spherical.theta);
+                }
+            }
+
+            // restrict phi to be between desired limits
+            spherical.phi = Math.max(0, Math.min(Math.PI, spherical.phi));
+            spherical.makeSafe();
+
+            const _targetPosition = new Vector3()
+                .setFromSphericalCoords(1, spherical.phi, spherical.theta)
+                .add(camera.position);
+
+            camera.lookAt(_targetPosition);
         }
 
         this.eventQueue.length = 0;
@@ -166,16 +207,27 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
                 eventType: EventType.SpectatorDelete,
                 payload: { id: clientId, },
             });
-        })
+        });
 
         socket.on('answer', (description: RTCSessionDescriptionInit) => {
             logger.debug(`[socket->webContents] answer`, description);
             this.broadcastor.answer(clientId, description);
-        })
+        });
 
         socket.on('icecandidate', (candidate: RTCIceCandidate) => {
             logger.debug(`[socket->webContents] icecandidate`, candidate);
             this.broadcastor.icecandidate(clientId, candidate);
-        })
+        });
+
+        socket.on(InnerEventType.SpectatorControlRotation, (payload: any) => {
+            this.eventQueue.push({
+                eventType: InnerEventType.SpectatorControlRotation,
+                payload: {
+                    id: clientId,
+                    moveAzimuthAngle: - payload.movementX * 0.002,
+                    movePolarAngle: payload.movementY * 0.002,
+                },
+            });
+        });
     }
 }
