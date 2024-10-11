@@ -1,5 +1,10 @@
 import type { RTCVideoSource } from 'wrtc/lib/binding';
 
+import type {
+    ISpectatorRotationEventPayload,
+    ISpectatorMovementEventPayload
+} from '@packages/spectator-protocol';
+
 import type { ISpectatorDeleteEvent } from '../../../entities';
 import { InnerEventType } from '../inner-event-type';
 
@@ -11,26 +16,22 @@ export interface ISpectatorCreateEvent {
     }
 }
 
-export interface ISpectatorRorationEvent {
+export interface ISpectatorRotationEvent {
     eventType: InnerEventType.SpectatorControlRotation,
-    payload: {
+    payload: ISpectatorRotationEventPayload & {
         id: string;
-        movePolarAngle: number;
-        moveAzimuthAngle: number;
     }
 }
 
 export interface ISpectatorMovementEvent {
     eventType: InnerEventType.SpectatorControlMovment,
-    payload: {
+    payload: ISpectatorMovementEventPayload & {
         id: string;
-        forward: 'forward' | 'backward' | null;
-        sidemove: 'right' | 'left' | null;
     }
 }
 
 export type IInnerEvent = |
     ISpectatorCreateEvent |
     ISpectatorDeleteEvent |
-    ISpectatorRorationEvent |
+    ISpectatorRotationEvent |
     ISpectatorMovementEvent;

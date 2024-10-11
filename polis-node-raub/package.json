@@ -20,6 +20,7 @@
     "3d-core-raub": "^4.3.0",
     "@flyskypie/three-bmfont-text": "^4.0.2",
     "@packages/webrtc-interface": "workspace:*",
+    "@packages/spectator-protocol": "workspace:*",
     "chalk": "^4.0.0",
     "dayjs": "^1.11.13",
     "events": "^3.3.0",

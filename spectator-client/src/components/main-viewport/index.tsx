@@ -1,6 +1,8 @@
 import type { MouseEventHandler, } from "react";
 import { useCallback, useEffect, useState } from "react";
 
+import { EventType } from "@packages/spectator-protocol";
+
 import { useSocket } from "../../context/socket-context";
 import { ReceiverSession } from "../../session/receiver-session";
 
@@ -51,9 +53,9 @@ export const MainViewport: React.FC = () => {
     }
 
     const { movementX, movementY } = event;
-    socket.emit('Spectator.Control.Rotation', {
-      movementX,
-      movementY
+    socket.emit(EventType.SpectatorControlRotation, {
+      moveAzimuthAngle: - movementX * 0.002,
+      movePolarAngle: movementY * 0.002,
     });
   }, [isLock, socket]);
 

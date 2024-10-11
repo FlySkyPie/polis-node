@@ -7,6 +7,8 @@ import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
 import { PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
 
+import type { ISpectatorRotationEventPayload } from '@packages/spectator-protocol';
+
 import type { ISystem } from '../../interfaces/system.interface';
 import type { IEntity, ISpectatorEntity } from '../../entities';
 import { EventType } from '../../constants/event-type';
@@ -17,7 +19,7 @@ import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interfa
 import type { IInnerEvent, } from './interfaces/inner-event.interface';
 import { StreamBroadcastor } from './stream-broadcastor';
 import { InnerEventType } from './inner-event-type';
-import { isMovementEvent, isRotationEvent } from './utilities';
+import { isMovementEvent, isRotationEvent, processMovement } from './utilities';
 
 const _twoPI = 2 * Math.PI;
 
@@ -97,15 +99,9 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
         const controlEvents = this.eventQueue.filter(isMovementEvent);
         const rotationEvents = this.eventQueue.filter(isRotationEvent);
         for (const spectator of this.querySpectator) {
+            processMovement(spectator, controlEvents);
+
             const { id, controller, camera } = spectator;
-            const movementEvent = controlEvents.findLast(event => event.payload.id === id);
-            if (movementEvent) {
-                controller.forward = movementEvent.payload.forward;
-                controller.sidemove = movementEvent.payload.sidemove;
-
-                // TODO: Move camera.
-            }
-
             const _rotationEvents = rotationEvents.filter(({ payload }) => payload.id === id);
             const delta = _rotationEvents.reduce((total, event) => {
                 total.theta += event.payload.moveAzimuthAngle;
@@ -219,15 +215,15 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
             this.broadcastor.icecandidate(clientId, candidate);
         });
 
-        socket.on(InnerEventType.SpectatorControlRotation, (payload: any) => {
-            this.eventQueue.push({
-                eventType: InnerEventType.SpectatorControlRotation,
-                payload: {
-                    id: clientId,
-                    moveAzimuthAngle: - payload.movementX * 0.002,
-                    movePolarAngle: payload.movementY * 0.002,
-                },
+        socket.on(InnerEventType.SpectatorControlRotation,
+            (payload: ISpectatorRotationEventPayload) => {
+                this.eventQueue.push({
+                    eventType: InnerEventType.SpectatorControlRotation,
+                    payload: {
+                        id: clientId,
+                        ...payload,
+                    },
+                });
             });
-        });
     }
 }
