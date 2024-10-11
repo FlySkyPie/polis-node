@@ -1,5 +1,3 @@
-import { Vector3 } from "three";
-
 import type { ISpectatorEntity } from "../../entities";
 
 import type { IInnerEvent, ISpectatorMovementEvent, ISpectatorRotationEvent } from "./interfaces/inner-event.interface";
@@ -17,20 +15,28 @@ export const processMovement = (spectator: ISpectatorEntity, _movementEvents: IS
     const { id, controller, camera } = spectator;
     const movementEvents = _movementEvents.filter(e => e.payload.id === id);
     movementEvents.forEach(({ payload }) => {
-        if (payload.forward) {
+        if (payload.forward !== undefined) {
             controller.forward = payload.forward;
         }
-        if (payload.sidemove) {
+        if (payload.sidemove !== undefined) {
             controller.sidemove = payload.sidemove;
         }
     });
 
-    // TODO: Move camera.
-    const { spherical } = controller;
+    const movementSpeed = 1.0;
+    const actualMoveSpeed = 1 * movementSpeed;
 
+    if (controller.forward === 'forward') {
+        camera.translateZ(- actualMoveSpeed);
+    }
+    if (controller.forward === 'backward') {
+        camera.translateZ(actualMoveSpeed);
+    }
 
-
-    const _targetPosition = new Vector3()
-        .setFromSphericalCoords(1, spherical.phi, spherical.theta)
-        .add(camera.position);
+    if (controller.sidemove === 'left') {
+        camera.translateX(- actualMoveSpeed);
+    }
+    if (controller.sidemove === 'right') {
+        camera.translateX(actualMoveSpeed);
+    }
 };
