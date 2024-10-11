@@ -5,6 +5,9 @@ type IProps = {
     lockTarget: HTMLElement | null;
 };
 
+/**
+ * Check element is lock pointer.
+ */
 export const useIsLock = ({ lockTarget }: IProps) => {
     const [isLock, setLock] = useState(false);
 

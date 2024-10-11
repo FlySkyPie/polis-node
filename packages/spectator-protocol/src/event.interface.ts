@@ -10,7 +10,14 @@ export interface ISpectatorRotationEventPayload {
     moveAzimuthAngle: number;
 }
 
-export interface ISpectatorMovementEventPayload {
-    forward?: 'forward' | 'backward';
-    sidemove?: 'right' | 'left';
+interface IForwardPayload {
+    forward: 'forward' | 'backward' | null;
+    sidemove?: undefined;
 }
+
+interface ISidemovePayload {
+    forward?: undefined;
+    sidemove: 'right' | 'left' | null;
+}
+
+export type ISpectatorMovementEventPayload = IForwardPayload | ISidemovePayload;

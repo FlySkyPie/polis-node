@@ -1,5 +1,6 @@
 import type { MouseEventHandler, } from "react";
 import { useCallback, useEffect, useState } from "react";
+import { useKeyPress } from "react-use";
 
 import { EventType } from "@packages/spectator-protocol";
 
@@ -13,7 +14,58 @@ export const MainViewport: React.FC = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
   const { socket } = useSocket();
   const { isLock } = useIsLock({ lockTarget: video });
-  // const [isLock, setLock] = useState(false);
+  const [isWPressed] = useKeyPress('w');
+  const [isSPressed] = useKeyPress('s');
+  const [isAPressed] = useKeyPress('a');
+  const [isDPressed] = useKeyPress('d');
+
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
+    if (isWPressed && !isSPressed) {
+      socket.emit(EventType.SpectatorControlMovment, {
+        forward: 'forward',
+      });
+      return;
+    }
+
+    if (!isWPressed && isSPressed) {
+      socket.emit(EventType.SpectatorControlMovment, {
+        forward: 'backward',
+      });
+      return;
+    }
+
+    socket.emit(EventType.SpectatorControlMovment, {
+      forward: null,
+    });
+  }, [socket, isWPressed, isSPressed,]);
+
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
+    if (isAPressed && !isDPressed) {
+      socket.emit(EventType.SpectatorControlMovment, {
+        sidemove: 'left',
+      });
+      return;
+    }
+
+    if (!isAPressed && isDPressed) {
+      socket.emit(EventType.SpectatorControlMovment, {
+        sidemove: 'right',
+      });
+      return;
+    }
+
+    socket.emit(EventType.SpectatorControlMovment, {
+      sidemove: null,
+    });
+  }, [socket, isAPressed, isDPressed,]);
 
   useEffect(() => {
     if (!video || !socket) {

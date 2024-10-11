@@ -7,7 +7,10 @@ import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
 import { PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
 
-import type { ISpectatorRotationEventPayload } from '@packages/spectator-protocol';
+import type {
+    ISpectatorMovementEventPayload, ISpectatorRotationEventPayload
+} from '@packages/spectator-protocol';
+import { EventType as SpectatorEvent } from '@packages/spectator-protocol';
 
 import type { ISystem } from '../../interfaces/system.interface';
 import type { IEntity, ISpectatorEntity } from '../../entities';
@@ -215,10 +218,21 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
             this.broadcastor.icecandidate(clientId, candidate);
         });
 
-        socket.on(InnerEventType.SpectatorControlRotation,
+        socket.on(SpectatorEvent.SpectatorControlRotation,
             (payload: ISpectatorRotationEventPayload) => {
                 this.eventQueue.push({
                     eventType: InnerEventType.SpectatorControlRotation,
+                    payload: {
+                        id: clientId,
+                        ...payload,
+                    },
+                });
+            });
+
+        socket.on(SpectatorEvent.SpectatorControlMovment,
+            (payload: ISpectatorMovementEventPayload) => {
+                this.eventQueue.push({
+                    eventType: InnerEventType.SpectatorControlMovment,
                     payload: {
                         id: clientId,
                         ...payload,

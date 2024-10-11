@@ -13,12 +13,13 @@
     "@emotion/react": "^11.11.1",
     "@emotion/styled": "^11.11.0",
     "@mui/joy": "5.0.0-beta.5",
+    "@packages/spectator-protocol": "workspace:*",
+    "@packages/webrtc-interface": "workspace:*",
     "events": "^3.3.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
-    "socket.io-client": "^4.7.2",
-    "@packages/webrtc-interface": "workspace:*",
-    "@packages/spectator-protocol": "workspace:*"
+    "react-use": "^17.5.1",
+    "socket.io-client": "^4.7.2"
   },
   "devDependencies": {
     "@types/events": "^3.0.0",
