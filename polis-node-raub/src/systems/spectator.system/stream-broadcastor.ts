@@ -17,8 +17,6 @@ export class StreamBroadcastor implements IStreamBroadcastor {
   }
 
   public disconnect(clientId: string): void {
-    logger.info(`[Browser] disconnect`, { clientId });
-
     const session = this.sessions.get(clientId)
     if (!session) {
       throw new Error()
@@ -34,9 +32,6 @@ export class StreamBroadcastor implements IStreamBroadcastor {
     }
 
     const server = this.server;
-
-    logger.info(`[Browser] connection`, { clientId });
-
     const transmitter = new TransmitterSession();
 
     transmitter.on('icecandidate', (candidate) => {

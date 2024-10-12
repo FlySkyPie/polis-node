@@ -4,7 +4,7 @@ import { useKeyPress } from "react-use";
 
 import { EventType } from "@packages/spectator-protocol";
 
-import { useSocket } from "../../context/socket-context";
+import { useSokcetStore } from "../../stores/socket-store";
 import { ReceiverSession } from "../../session/receiver-session";
 
 import styles from "./styles.module.scss";
@@ -12,7 +12,7 @@ import { useIsLock } from "./use-is-lock";
 
 export const MainViewport: React.FC = () => {
   const [video, setVideo] = useState<HTMLVideoElement | null>(null);
-  const { socket } = useSocket();
+  const { socket } = useSokcetStore();
   const { isLock } = useIsLock({ lockTarget: video });
   const [isWPressed] = useKeyPress('w');
   const [isSPressed] = useKeyPress('s');

@@ -1,21 +1,25 @@
 import { useState } from "react";
 import { LogList } from "./components/log-list";
 import { MainViewport } from "./components/main-viewport";
-import { SocketContextProvider } from "./context/socket-context";
 import { EntryPage } from "./components/entry-page";
+import { useSokcetStore } from "./stores/socket-store";
 
 function App() {
+  const { connect } = useSokcetStore();
   const [isStarted, setStarted] = useState(false);
 
   if (!isStarted) {
-    return <EntryPage onStart={() => setStarted(true)} />;
+    return <EntryPage onStart={() => {
+      connect();
+      setStarted(true);
+    }} />;
   }
 
   return (
-    <SocketContextProvider>
+    <>
       <MainViewport />
       <LogList />
-    </SocketContextProvider>
+    </>
   );
 }
 

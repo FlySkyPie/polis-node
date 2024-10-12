@@ -4,6 +4,9 @@ import { createContext, useContext, useMemo, useState } from "react";
 import { io } from "socket.io-client";
 
 interface ISocketContext {
+  /**
+   * @deprecated
+   */
   socket?: Socket;
 }
 
@@ -25,6 +28,9 @@ export const SocketContextProvider: React.FC<{ children: React.ReactNode }> = ({
   );
 };
 
+/**
+ * @deprecated
+ */
 export const useSocket = () => {
   const { socket } = useContext(SocketContext);
 
