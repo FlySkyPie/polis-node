@@ -66,6 +66,8 @@ export interface ISpectatorEntity {
   source: RTCVideoSource,
 
   controller: IControlState;
+
+  renderObjects: Object3D[];
 };
 
 export interface IFontAssetEntity {

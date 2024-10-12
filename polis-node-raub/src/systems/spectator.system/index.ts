@@ -5,7 +5,7 @@ import http from 'http';
 import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
-import { PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
+import { CameraHelper, PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
 
 import type {
     ISpectatorMovementEventPayload, ISpectatorRotationEventPayload
@@ -13,7 +13,7 @@ import type {
 import { EventType as SpectatorEvent } from '@packages/spectator-protocol';
 
 import type { ISystem } from '../../interfaces/system.interface';
-import type { IEntity, ISpectatorEntity } from '../../entities';
+import type { IEntity, ISpectatorEntity, IThreeSingletonEntity } from '../../entities';
 import { EventType } from '../../constants/event-type';
 import { logger } from '../../utilities/logger';
 
@@ -37,6 +37,8 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
     private eventQueue: IInnerEvent[] = [];
 
     private querySpectator!: Query<ISpectatorEntity>;
+
+    private queryThree!: Query<IThreeSingletonEntity>;
 
     constructor() {
         const app = express()
@@ -64,12 +66,16 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
     }
 
     public async init(world: World<IEntity>): Promise<void> {
-        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller');
+        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller', 'renderObjects');
+        const queryThree = world.with('threeComponent');
+
 
         this.querySpectator = querySpectator;
+        this.queryThree = queryThree;
     }
 
     public tick(world: World<IEntity>): void {
+        const { threeComponent } = this.queryThree.first!;
         // Process inner events.
         for (const event of this.eventQueue) {
             if (event.eventType === EventType.SpectatorDelete) {
@@ -84,6 +90,9 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
                     depthBuffer: false,
                 });
 
+                const helper = new CameraHelper(camera);
+                threeComponent.scene.add(helper);
+
                 const { payload: { id, source } } = event;
                 world.add<ISpectatorEntity>({
                     id,
@@ -95,6 +104,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
                         sidemove: null,
                         spherical: new Spherical(1, Math.PI * 0.5, Math.PI),
                     },
+                    renderObjects: [helper],
                 });
             }
         }
