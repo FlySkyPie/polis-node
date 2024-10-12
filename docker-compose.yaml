@@ -1,0 +1,13 @@
+services:
+  polis-a:
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    environment:
+      - PORT=8080
+    ports:
+      - 8989:8080
+      # - 4000:3000
+      # - 4001:3001
+    devices:
+      - /dev/dri:/dev/dri

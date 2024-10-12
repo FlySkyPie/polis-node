@@ -4,9 +4,13 @@
   "description": "",
   "scripts": {
     "dev": "pnpm --stream -r dev",
-    "build": "pnpm --stream -r build"
+    "build": "pnpm -r build"
   },
   "keywords": [],
   "author": "",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": "18"
+  },
+  "packageManager": "pnpm@9.11.0"
 }
