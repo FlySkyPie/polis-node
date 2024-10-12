@@ -1,7 +1,15 @@
+import type { Logger } from 'winston';
+import type { Socket } from 'socket.io';
+import express from 'express';
+import http from 'http';
+import { Server } from 'socket.io';
+
 import type { ISpectatorEntity } from "../../entities";
 
 import type { IInnerEvent, ISpectatorMovementEvent, ISpectatorRotationEvent } from "./interfaces/inner-event.interface";
 import { InnerEventType } from "./inner-event-type";
+
+export const TWO_PI = 2 * Math.PI;
 
 export const isMovementEvent = (event: IInnerEvent): event is ISpectatorMovementEvent => {
     return event.eventType === InnerEventType.SpectatorControlMovment;
@@ -39,4 +47,24 @@ export const processMovement = (spectator: ISpectatorEntity, _movementEvents: IS
     if (controller.sidemove === 'right') {
         camera.translateX(actualMoveSpeed);
     }
+};
+
+export const createServer = (logger: Logger, onConnect: (socket: Socket) => void) => {
+    const app = express();
+    const server = http.createServer(app);
+
+    app.use(express.static('public'));
+
+    const cors = process.env.NODE_ENV !== 'development' ? undefined : {
+        origin: 'http://localhost:5173',
+        methods: ['GET', 'POST']
+    };
+    const port = process.env.NODE_ENV === 'development' ? 5959 : process.env.PORT ?? 0;
+
+    const io = new Server(server, { cors, });
+    io.on('connection', onConnect);
+
+    server.listen(port, () => {
+        logger.info('listening on *:', server.address());
+    });
 };

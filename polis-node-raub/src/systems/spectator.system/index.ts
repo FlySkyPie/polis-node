@@ -1,8 +1,5 @@
 import type { Socket } from 'socket.io';
 import type { Query, World } from 'miniplex';
-import express from 'express';
-import http from 'http';
-import { Server } from 'socket.io';
 import { nanoid } from 'nanoid';
 import { nonstandard, MediaStream } from 'wrtc';
 import { CameraHelper, PerspectiveCamera, Spherical, Vector3, WebGLRenderTarget } from 'three';
@@ -22,9 +19,7 @@ import type { IStreamBroadcastor } from './interfaces/stream-broadcastor.interfa
 import type { IInnerEvent, } from './interfaces/inner-event.interface';
 import { StreamBroadcastor } from './stream-broadcastor';
 import { InnerEventType } from './inner-event-type';
-import { isMovementEvent, isRotationEvent, processMovement } from './utilities';
-
-const _twoPI = 2 * Math.PI;
+import { createServer, isMovementEvent, isRotationEvent, processMovement, TWO_PI } from './utilities';
 
 export class SpectatorSystem implements ISystem, ISpectatorServer {
     private secssions = new Map<string, Socket>();
@@ -41,23 +36,7 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
     private queryThree!: Query<IThreeSingletonEntity>;
 
     constructor() {
-        const app = express()
-        const server = http.createServer(app)
-
-        app.use(express.static('public'))
-
-        const io = new Server(server, {
-            cors: {
-                origin: 'http://localhost:5173',
-                methods: ['GET', 'POST']
-            }
-        })
-
-        io.on('connection', this.handleConnect);
-
-        server.listen(process.env.NODE_ENV === 'development' ? 5959 : 0, () => {
-            logger.info('listening on *:', server.address());
-        });
+        createServer(logger, this.handleConnect);
 
         const broadcastor = new StreamBroadcastor();
         broadcastor.setAnswerable(this);
@@ -135,8 +114,8 @@ export class SpectatorSystem implements ISystem, ISpectatorServer {
             let max = Infinity;
 
             if (isFinite(min) && isFinite(max)) {
-                if (min < - Math.PI) min += _twoPI; else if (min > Math.PI) min -= _twoPI;
-                if (max < - Math.PI) max += _twoPI; else if (max > Math.PI) max -= _twoPI;
+                if (min < - Math.PI) min += TWO_PI; else if (min > Math.PI) min -= TWO_PI;
+                if (max < - Math.PI) max += TWO_PI; else if (max > Math.PI) max -= TWO_PI;
 
                 if (min <= max) {
                     spherical.theta = Math.max(min, Math.min(max, spherical.theta));
