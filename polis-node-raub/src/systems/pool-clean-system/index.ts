@@ -27,7 +27,7 @@ export class PoolCleanSystem implements ISystem {
     this.queryThree = queryThree;
   }
 
-  public tick(world: World<IEntity>, queries: unknown): void {
+  public tick(world: World<IEntity>, _queries: unknown): void {
     const { threeComponent } = this.queryThree.first!;
 
     for (const spectator of this.querySpectator) {

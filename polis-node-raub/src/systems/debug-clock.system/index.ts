@@ -51,7 +51,7 @@ export class DebugClockSystem implements ISystem {
         this.queryFont = queryFont;
     }
 
-    tick(world: World<IEntity>): void {
+    tick(_world: World<IEntity>): void {
         const geom: BufferGeometry = createText({
             text: dayjs().format('HH:mm:ss SSS'),
             font: this.queryFont.first!.font,

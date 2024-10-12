@@ -1,8 +1,8 @@
 import type { World } from "miniplex";
-import { Color, PerspectiveCamera, Scene, WebGLRenderTarget } from "three";
+import { Color, Scene, } from "three";
 
 import type { ISystem } from "../../interfaces/system.interface";
-import type { IEntity, ISpectatorEntity, IThreeSingletonEntity } from "../../entities";
+import type { IEntity, IThreeSingletonEntity } from "../../entities";
 
 
 export class GenesisSystem implements ISystem {
@@ -30,7 +30,7 @@ export class GenesisSystem implements ISystem {
         // })());
     }
 
-    tick(world: unknown, queries: unknown): void {
+    tick(_world: unknown, _queries: unknown): void {
         throw new Error("Method not implemented.");
     }
 

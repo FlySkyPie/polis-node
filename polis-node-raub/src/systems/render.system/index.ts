@@ -2,7 +2,7 @@ import type { Document } from '3d-core-raub';
 import type { Query, With, World } from 'miniplex';
 import { LinearSRGBColorSpace, NoToneMapping, WebGLRenderer } from "three";
 import sharp from 'sharp';
-import { nonstandard, MediaStream } from 'wrtc';
+import { nonstandard, } from 'wrtc';
 
 import type { ISystem } from "../../interfaces/system.interface";
 import type { IEntity, ISpectatorEntity } from '../../entities';
@@ -35,14 +35,14 @@ export class RenderSystem implements ISystem {
     }
 
     async init(world: World<IEntity>) {
-        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller');
+        const querySpectator = world.with('id', 'camera', 'renderTarget', 'source', 'controller', 'renderObjects');
         const queryThree = world.with('threeComponent');
 
         this.querySpectator = querySpectator;
         this.queryThree = queryThree;
     }
 
-    tick(world: World<IEntity>): void {
+    tick(_world: World<IEntity>): void {
         const { threeComponent: { scene } } = this.queryThree.first!;
 
         for (const spectator of this.querySpectator) {

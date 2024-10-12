@@ -1,6 +1,5 @@
 import * as THREE from 'three';
 import { init, addThreeHelpers } from '3d-core-raub';
-import { nonstandard, MediaStream } from 'wrtc';
 import { World } from "miniplex";
 
 import type { IEntity, } from './entities';
@@ -41,24 +40,26 @@ const poolCleanSystem = new PoolCleanSystem();
 //   renderSystem,
 // ];
 
-await genesisSystem.init(world);
-await Promise.all([
-  assetSystem,
-  sampleSystem,
-  renderSystem,
-  poolCleanSystem,
-  spectatorSystem,
-].map(item => item.init(world)));
-await debugClockSystem.init(world);
+(async () => {
+  await genesisSystem.init(world);
+  await Promise.all([
+    assetSystem,
+    sampleSystem,
+    renderSystem,
+    poolCleanSystem,
+    spectatorSystem,
+  ].map(item => item.init(world)));
+  await debugClockSystem.init(world);
 
-const gameLoop = () => {
-  requestAnimationFrame(gameLoop);
+  const gameLoop = () => {
+    requestAnimationFrame(gameLoop);
 
-  debugClockSystem.tick(world);
-  spectatorSystem.tick(world);
-  renderSystem.tick(world);
+    debugClockSystem.tick(world);
+    spectatorSystem.tick(world);
+    renderSystem.tick(world);
 
-  poolCleanSystem.tick(world, {});
-};
+    poolCleanSystem.tick(world, {});
+  };
 
-gameLoop();
+  gameLoop();
+})()

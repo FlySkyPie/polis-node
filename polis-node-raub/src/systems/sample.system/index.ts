@@ -33,7 +33,7 @@ export class SampleSystem implements ISystem {
             scene.add(object3D);
         }
     }
-    tick(world: unknown, queries: unknown): void {
+    tick(_world: unknown, _queries: unknown): void {
         throw new Error("Method not implemented.");
     }
     dispose(): Promise<void> {
